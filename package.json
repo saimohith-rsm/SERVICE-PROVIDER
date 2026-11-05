@@ -1,0 +1,39 @@
+{
+  "name": "serveease",
+  "version": "1.0.0",
+  "description": "ServeEase – Local Service Provider Booking Platform (MERN Stack on Vercel)",
+  "scripts": {
+    "dev": "npm run dev:client",
+    "dev:server": "cd server && npm start",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "build:client": "cd client && npm run build",
+    "seed": "cd server && npm run seed",
+    "test:e2e": "cd server && node utils/testE2E.js",
+    "view:db": "cd server && node utils/viewDb.js",
+    "verify:db": "cd server && node utils/verifyDatabase.js",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.2",
+    "morgan": "^1.10.0"
+  },
+  "keywords": [
+    "mern",
+    "service-booking",
+    "react",
+    "node",
+    "express",
+    "mongodb",
+    "tailwind",
+    "vercel"
+  ],
+  "author": "ServeEase Team",
+  "license": "MIT"
+}
