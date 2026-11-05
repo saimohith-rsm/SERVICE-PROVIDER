@@ -20,14 +20,15 @@ const Login = () => {
     e.preventDefault();
     setError('');
 
-    if (!email || !password) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
       setError('Please provide both email and password.');
       return;
     }
 
     try {
       setLoading(true);
-      const res = await login(email, password);
+      const res = await login(cleanEmail, password);
       if (res.success) {
         // Redirect based on user role or previous location
         if (from) {
@@ -44,7 +45,8 @@ const Login = () => {
       }
     } catch (err) {
       setError(
-        err.response?.data?.message || 'Invalid email or password. Please try again.'
+        err.response?.data?.message ||
+        (err.response?.status === 401 ? 'Invalid email or password. Please check your credentials.' : 'Unable to connect to the server. Please check your network.')
       );
     } finally {
       setLoading(false);

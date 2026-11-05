@@ -131,13 +131,15 @@ const login = async (req, res, next) => {
       });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     // Explicitly select password field
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials. User not found.',
+        message: 'Account not found for this email address. Please check your spelling or sign up.',
       });
     }
 
@@ -152,7 +154,7 @@ const login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials. Incorrect password.',
+        message: 'Incorrect password entered. Please try again.',
       });
     }
 

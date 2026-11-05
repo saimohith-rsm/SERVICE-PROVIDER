@@ -19,7 +19,7 @@ router.post(
   '/register',
   [
     body('name', 'Name is required').trim().notEmpty(),
-    body('email', 'Please include a valid email').isEmail().normalizeEmail(),
+    body('email', 'Please include a valid email').trim().isEmail().normalizeEmail(),
     body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
     body('phone', 'Valid phone number is required').trim().notEmpty(),
     validate,
@@ -33,7 +33,7 @@ router.post(
   [
     body('name', 'Contact name is required').trim().notEmpty(),
     body('businessName', 'Business/Service name is required').trim().notEmpty(),
-    body('email', 'Please include a valid email').isEmail().normalizeEmail(),
+    body('email', 'Please include a valid email').trim().isEmail().normalizeEmail(),
     body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
     body('phone', 'Valid phone number is required').trim().notEmpty(),
     validate,
@@ -45,7 +45,7 @@ router.post(
 router.post(
   '/login',
   [
-    body('email', 'Please include a valid email').isEmail().normalizeEmail(),
+    body('email', 'Please include a valid email').trim().isEmail().normalizeEmail(),
     body('password', 'Password is required').notEmpty(),
     validate,
   ],
