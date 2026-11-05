@@ -51,9 +51,22 @@ ServeEase unifies discovery, scheduling, payment status tracking, and quality as
 - **ODM:** Mongoose (v8) with custom pre/post hooks, compound unique indexes, and schema statics
 
 ### Cloud & Deployment
-- **Frontend:** Vercel (SPA rewrite rules via `vercel.json`)
-- **Backend:** Render (Environment configuration via `render.yaml`)
-- **Database:** MongoDB Atlas / Local MongoDB instance
+- **Monorepo Full-Stack Platform:** Vercel (Frontend React SPA + Serverless Express REST API via `api/index.js` and `vercel.json`)
+- **Container / Standalone Alternative:** Render (`render.yaml`)
+- **Database:** MongoDB Atlas (Cloud) / Local MongoDB instance
+- **Security Hardening:** Helmet (HTTP headers), express-rate-limit (Brute-force protection), Custom NoSQL injection sanitizer, bcryptjs password hashing
+
+---
+
+## 5. Security & Production Hardening
+
+ServeEase is built to enterprise security and performance standards:
+- **Rate Limiting:** Protects API endpoints against denial-of-service and brute-force attacks (`30 requests / 15 mins` on authentication endpoints, `300 requests / 15 mins` globally).
+- **HTTP Security Headers:** Protected with `helmet` for X-Content-Type-Options, HSTS, X-Frame-Options, and referrer policy.
+- **NoSQL Injection Sanitization:** Custom recursive request sanitizer strips keys prefixed with `$` or containing `.` from query parameters, route params, and request bodies.
+- **Double-Booking Atomic Prevention:** Unique compound partial index in MongoDB on `(providerId, bookingDate, timeSlot)` filtered for active bookings (`Pending`, `Accepted`, `On The Way`, `In Progress`, `Completed`).
+- **Live Provider Rating Recalculation:** Mongoose `post('save')` and `post('findOneAndDelete')` hooks calculate rolling `averageRating` and `totalReviews` via aggregation pipeline.
+- **Code Splitting & Asset Optimization:** Vite production bundle with vendor chunking (`vendor-react`, `vendor-icons`, `vendor-http`) ensuring small, cacheable bundles.
 
 ---
 
@@ -252,52 +265,61 @@ VITE_API_URL=/api
 
 ### 3. Seed Database
 ```bash
-cd server
 npm run seed
 ```
+*Seeds Guntur & Andhra Pradesh categories, approved & pending providers, active services, customer accounts, and demo bookings.*
 
-### 4. Run Automated 14-Step Acceptance Test
+### 4. Run Automated Test Suites
 ```bash
-node utils/testE2E.js
+# Run Unit & Model Constraint Tests
+npm test
+
+# Run Schema & Foreign Key Verification
+npm run verify:db
+
+# Run Complete 14-Step Acceptance E2E Scenario
+npm run test:e2e
 ```
-*Executes the complete scenario: Provider registration &rarr; Admin approval &rarr; Service creation &rarr; Customer booking &rarr; Lifecycle advancement &rarr; Completion &rarr; Review submission &rarr; Rating recalculation.*
 
-### 5. Start Servers
+### 5. Build for Production
 ```bash
-# Terminal 1: Start Backend API (Port 5000)
-cd server
-npm start
+npm run build
+```
 
-# Terminal 2: Start Frontend Client (Port 5173)
-cd client
+### 6. Start Development Servers
+```bash
+# Start frontend client (Vite dev server)
 npm run dev
+
+# Or start backend server directly
+npm run dev:server
 ```
 
-Open your browser at **`http://localhost:5173`**.
+Open your browser at **`http://localhost:5173`** (or **`http://localhost:5000`**).
 
 ---
 
 ## 11. Deployment Guide
 
-### Deploy Backend to Render
-1. Push your repository to GitHub.
-2. In Render, select **New + &rarr; Web Service**.
-3. Connect the repository, set Root Directory to `server`.
-4. Build Command: `npm install`
-5. Start Command: `node server.js`
-6. Add Environment Variables:
-   - `MONGO_URI`: Your MongoDB Atlas connection string
-   - `JWT_SECRET`: A secure random secret string
-   - `CLIENT_URL`: Your Vercel frontend URL
-   - `NODE_ENV`: `production`
+### Option A: Monorepo Full-Stack Deployment to Vercel (Recommended)
 
-### Deploy Frontend to Vercel
-1. In Vercel, click **Add New &rarr; Project** and select the repository.
-2. Set Root Directory to `client`.
-3. Framework Preset: **Vite**.
-4. Environment Variables:
-   - `VITE_API_URL`: Your Render backend URL (e.g., `https://serveease-api.onrender.com/api`).
-5. Deploy. Vercel automatically respects `vercel.json` for client-side routing.
+Because ServeEase includes `vercel.json` and `api/index.js`, the entire application (React frontend + Express Serverless API) deploys in a single Vercel project:
+
+1. Push your repository to GitHub:
+   ```bash
+   git push -u origin main
+   ```
+2. In [Vercel](https://vercel.com), click **Add New &rarr; Project** and import `SERVICE-PROVIDER`.
+3. Add Environment Variables:
+   - `MONGO_URI`: Your MongoDB Atlas connection string (`mongodb+srv://...`)
+   - `JWT_SECRET`: A 32+ character secure secret
+   - `NODE_ENV`: `production`
+4. Click **Deploy**. Vercel will build the React SPA and serve the Express REST API under `/api/*`.
+
+### Option B: Deploy Backend to Render & Frontend to Vercel
+1. In Render, select **New + &rarr; Web Service** and connect repository using `server/render.yaml`.
+2. Add `MONGO_URI`, `JWT_SECRET`, and `CLIENT_URL` environment variables.
+3. In Vercel, import `client` directory and set `VITE_API_URL` to your Render backend URL.
 
 ---
 

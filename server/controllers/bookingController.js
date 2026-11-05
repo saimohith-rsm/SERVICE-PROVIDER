@@ -88,7 +88,7 @@ const createBooking = async (req, res, next) => {
       providerId: provider._id,
       bookingDate,
       timeSlot,
-      bookingStatus: { $nin: ['Cancelled', 'Rejected'] },
+      bookingStatus: { $in: ['Pending', 'Accepted', 'On The Way', 'In Progress', 'Completed'] },
     });
 
     if (existingConflict) {
