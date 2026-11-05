@@ -3,6 +3,11 @@ const app = require('../server/server');
 const connectDB = require('../server/config/db');
 
 module.exports = async (req, res) => {
+  // Allow health check endpoint to respond immediately so reachability can always be verified
+  if (req.url === '/api/health' || req.url === '/health') {
+    return app(req, res);
+  }
+
   try {
     await connectDB();
   } catch (error) {

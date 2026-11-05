@@ -5,14 +5,17 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
 // Initialize express app
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB in standalone server (in Vercel serverless, api/index.js handles connection per request)
+if (!process.env.VERCEL) {
+  connectDB();
+}
 
 // Security: HTTP headers protection
 app.use(
@@ -85,9 +88,11 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
 
 // Health check endpoint (handles both /api/health and /health)
 app.get(['/api/health', '/health'], (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.status(200).json({
     status: 'OK',
     service: 'ServeEase API Server',
+    database: dbStatus,
     environment: process.env.NODE_ENV || 'development',
     serverless: !!process.env.VERCEL,
     timestamp: new Date().toISOString(),
