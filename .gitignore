@@ -34,3 +34,5 @@ server/data/db/
 .DS_Store
 Thumbs.db
 
+
+.vercel
