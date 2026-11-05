@@ -83,8 +83,8 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   app.use(morgan('dev'));
 }
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint (handles both /api/health and /health)
+app.get(['/api/health', '/health'], (req, res) => {
   res.status(200).json({
     status: 'OK',
     service: 'ServeEase API Server',
@@ -94,34 +94,42 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Helper to mount routes on both /api/xxx and /xxx for Vercel Serverless compatibility
+const mountRoute = (pathPrefix, router) => {
+  app.use(`/api/${pathPrefix}`, router);
+  app.use(`/${pathPrefix}`, router);
+};
+
 // Mount API Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/providers', require('./routes/providerRoutes'));
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/services', require('./routes/serviceRoutes'));
-app.use('/api/bookings', require('./routes/bookingRoutes'));
-app.use('/api/reviews', require('./routes/reviewRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use('/api/complaints', require('./routes/complaintRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
+mountRoute('auth', require('./routes/authRoutes'));
+mountRoute('users', require('./routes/userRoutes'));
+mountRoute('providers', require('./routes/providerRoutes'));
+mountRoute('categories', require('./routes/categoryRoutes'));
+mountRoute('services', require('./routes/serviceRoutes'));
+mountRoute('bookings', require('./routes/bookingRoutes'));
+mountRoute('reviews', require('./routes/reviewRoutes'));
+mountRoute('notifications', require('./routes/notificationRoutes'));
+mountRoute('complaints', require('./routes/complaintRoutes'));
+mountRoute('admin', require('./routes/adminRoutes'));
 
 // 404 Route Handler for undefined API endpoints
-app.use('/api/*', (req, res) => {
+app.use(['/api/*', '/api'], (req, res) => {
   res.status(404).json({
     success: false,
     message: `API endpoint ${req.originalUrl} not found on ServeEase.`,
   });
 });
 
-// Serve frontend static assets from client/dist if present
-const clientDistPath = path.join(__dirname, '../client/dist');
-app.use(express.static(clientDistPath));
+// In standalone local dev, serve frontend static assets from client/dist if present
+if (!process.env.VERCEL) {
+  const clientDistPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(clientDistPath));
 
-// For all non-API routes, serve client index.html (SPA Fallback)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(clientDistPath, 'index.html'));
-});
+  // For all non-API routes, serve client index.html (SPA Fallback)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // Centralized Error Handling Middleware
 app.use(errorHandler);

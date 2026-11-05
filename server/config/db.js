@@ -12,7 +12,13 @@ const connectDB = async () => {
   }
 
   if (!cached.promise) {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/serveease';
+    const mongoUri = process.env.MONGO_URI || (process.env.VERCEL ? null : 'mongodb://127.0.0.1:27018/serveease');
+    if (!mongoUri) {
+      throw new Error(
+        'MONGO_URI is missing on Vercel! Please add your MongoDB Atlas connection string to Vercel Settings -> Environment Variables.'
+      );
+    }
+
     cached.promise = mongoose.connect(mongoUri).then((m) => {
       console.log(`[Database] MongoDB Connected: ${m.connection.host}/${m.connection.name}`);
       return m;
