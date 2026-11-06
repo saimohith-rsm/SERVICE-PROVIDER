@@ -44,10 +44,15 @@ const Login = () => {
         setError(res.message || 'Login failed.');
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        (err.response?.status === 401 ? 'Invalid email or password. Please check your credentials.' : 'Unable to connect to the server. Please check your network.')
-      );
+      if (err.response?.status === 405) {
+        setError('Vercel API is not active (HTTP 405). Please ensure Root Directory in Vercel Project Settings is set to repository root (./).');
+      } else if (err.response?.status === 401) {
+        setError(err.response?.data?.message || 'Invalid email or password. Please check your credentials.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Unable to connect to the server. Please check your network or Vercel deployment status.');
+      }
     } finally {
       setLoading(false);
     }
