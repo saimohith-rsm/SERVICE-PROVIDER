@@ -19,9 +19,11 @@ router.post(
   '/register',
   [
     body('name', 'Name is required').trim().notEmpty(),
-    body('email', 'Please include a valid email').trim().isEmail().normalizeEmail(),
-    body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
-    body('phone', 'Valid phone number is required').trim().notEmpty(),
+    body('email', 'Please include a valid email address').trim().isEmail().normalizeEmail(),
+    body('password', 'Password must be at least 6 characters long').isLength({ min: 6 }),
+    body('phone', 'Valid phone number is required (10-15 digits)')
+      .trim()
+      .matches(/^(\+?[0-9\s-]{10,15})$/),
     validate,
   ],
   registerCustomer
@@ -33,9 +35,11 @@ router.post(
   [
     body('name', 'Contact name is required').trim().notEmpty(),
     body('businessName', 'Business/Service name is required').trim().notEmpty(),
-    body('email', 'Please include a valid email').trim().isEmail().normalizeEmail(),
-    body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
-    body('phone', 'Valid phone number is required').trim().notEmpty(),
+    body('email', 'Please include a valid email address').trim().isEmail().normalizeEmail(),
+    body('password', 'Password must be at least 6 characters long').isLength({ min: 6 }),
+    body('phone', 'Valid phone number is required (10-15 digits)')
+      .trim()
+      .matches(/^(\+?[0-9\s-]{10,15})$/),
     validate,
   ],
   registerProvider

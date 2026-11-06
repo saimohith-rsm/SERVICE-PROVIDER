@@ -54,7 +54,39 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    if (customerData.password.length < 6) {
+    const cleanName = customerData.name.trim();
+    const cleanEmail = customerData.email.trim();
+    const cleanPhone = customerData.phone.trim();
+    const password = customerData.password;
+
+    if (!cleanName) {
+      setError('Full Name is required.');
+      return;
+    }
+
+    if (!cleanEmail) {
+      setError('Email Address is required.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setError('Please provide a valid email address.');
+      return;
+    }
+
+    if (!cleanPhone) {
+      setError('Mobile Number is required.');
+      return;
+    }
+
+    const phoneRegex = /^(\+?[0-9\s-]{10,15})$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      setError('Invalid mobile number. Please enter a valid 10 to 15 digit number.');
+      return;
+    }
+
+    if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
@@ -62,14 +94,14 @@ const Register = () => {
     try {
       setLoading(true);
       const res = await registerCustomer({
-        name: customerData.name,
-        email: customerData.email,
-        password: customerData.password,
-        phone: customerData.phone,
+        name: cleanName,
+        email: cleanEmail,
+        password: password,
+        phone: cleanPhone,
         address: {
-          street: customerData.street,
-          city: customerData.city,
-          postalCode: customerData.postalCode,
+          street: customerData.street.trim(),
+          city: customerData.city.trim() || 'Guntur',
+          postalCode: customerData.postalCode.trim() || '522002',
           state: 'Andhra Pradesh',
         },
       });
@@ -77,10 +109,11 @@ const Register = () => {
       if (res.success) {
         navigate('/customer/dashboard', { replace: true });
       } else {
-        setError(res.message || 'Registration failed.');
+        setError(res.message || 'Registration failed. Please check your inputs.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please check your inputs.');
+      const msg = err.response?.data?.message || err.message || 'Unable to connect to the server. Please check your network.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -90,7 +123,45 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    if (providerData.password.length < 6) {
+    const cleanName = providerData.name.trim();
+    const cleanBusiness = providerData.businessName.trim();
+    const cleanEmail = providerData.email.trim();
+    const cleanPhone = providerData.phone.trim();
+    const password = providerData.password;
+
+    if (!cleanName) {
+      setError('Contact Name is required.');
+      return;
+    }
+
+    if (!cleanBusiness) {
+      setError('Business / Service Name is required.');
+      return;
+    }
+
+    if (!cleanEmail) {
+      setError('Email Address is required.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setError('Please provide a valid email address.');
+      return;
+    }
+
+    if (!cleanPhone) {
+      setError('Mobile Number is required.');
+      return;
+    }
+
+    const phoneRegex = /^(\+?[0-9\s-]{10,15})$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      setError('Invalid mobile number. Please enter a valid 10 to 15 digit number.');
+      return;
+    }
+
+    if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
@@ -103,17 +174,17 @@ const Register = () => {
     try {
       setLoading(true);
       const res = await registerProvider({
-        name: providerData.name,
-        email: providerData.email,
-        password: providerData.password,
-        phone: providerData.phone,
-        businessName: providerData.businessName,
-        description: providerData.description,
-        experience: Number(providerData.experience),
+        name: cleanName,
+        businessName: cleanBusiness,
+        email: cleanEmail,
+        password: password,
+        phone: cleanPhone,
+        description: providerData.description.trim(),
+        experience: Number(providerData.experience) || 1,
         serviceAreas: providerData.serviceAreas,
         address: {
-          street: providerData.street,
-          city: providerData.city,
+          street: providerData.street.trim(),
+          city: providerData.city.trim() || 'Guntur',
           state: 'Andhra Pradesh',
         },
       });
@@ -121,10 +192,11 @@ const Register = () => {
       if (res.success) {
         navigate('/provider/dashboard', { replace: true });
       } else {
-        setError(res.message || 'Registration failed.');
+        setError(res.message || 'Registration failed. Please check your inputs.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Provider registration failed. Please try again.');
+      const msg = err.response?.data?.message || err.message || 'Unable to connect to the server. Please check your network.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
