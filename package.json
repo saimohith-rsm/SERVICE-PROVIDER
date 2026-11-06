@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "ServeEase – Local Service Provider Booking Platform (MERN Stack on Vercel)",
   "scripts": {
+    "start": "node server/server.js",
     "dev": "npm run dev:client",
     "dev:server": "cd server && npm start",
     "dev:client": "cd client && npm run dev",
-    "build": "cd client && npm install && npm run build",
+    "build": "cd client && npm run build && cd .. && node -e \"const fs=require('fs'); fs.cpSync('client/dist', 'dist', {recursive:true});\"",
     "build:client": "cd client && npm run build",
     "test": "cd server && npm test",
     "seed": "cd server && npm run seed",
@@ -38,5 +39,8 @@
     "vercel"
   ],
   "author": "ServeEase Team",
-  "license": "MIT"
+  "license": "MIT",
+  "allowScripts": {
+    "esbuild": true
+  }
 }

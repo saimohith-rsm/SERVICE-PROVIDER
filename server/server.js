@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
@@ -14,7 +15,9 @@ const app = express();
 
 // Connect to MongoDB in standalone server (in Vercel serverless, api/index.js handles connection per request)
 if (!process.env.VERCEL) {
-  connectDB();
+  connectDB().catch((err) => {
+    console.warn('[MongoDB Startup Notice]:', err.message);
+  });
 }
 
 // Security: HTTP headers protection
@@ -53,10 +56,37 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
 // Core Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://client-opal-nine-29.vercel.app',
+];
+if (process.env.CLIENT_URL) {
+  process.env.CLIENT_URL.split(',').forEach((origin) => {
+    const trimmed = origin.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in cloud deployment to prevent customer lockouts
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 app.use(express.json({ limit: '10mb' }));
@@ -128,12 +158,26 @@ app.use(['/api/*', '/api'], (req, res) => {
 // In standalone local dev, serve frontend static assets from client/dist if present
 if (!process.env.VERCEL) {
   const clientDistPath = path.join(__dirname, '../client/dist');
-  app.use(express.static(clientDistPath));
+  const indexHtmlPath = path.join(clientDistPath, 'index.html');
 
-  // For all non-API routes, serve client index.html (SPA Fallback)
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientDistPath, 'index.html'));
-  });
+  if (fs.existsSync(indexHtmlPath)) {
+    app.use(express.static(clientDistPath));
+    // For all non-API routes, serve client index.html (SPA Fallback)
+    app.get('*', (req, res) => {
+      res.sendFile(indexHtmlPath);
+    });
+  } else {
+    // When deployed separately on Render as API backend
+    app.get('/', (req, res) => {
+      res.status(200).json({
+        success: true,
+        service: 'ServeEase Backend API Server',
+        status: 'Operational',
+        health: '/api/health',
+        documentation: 'https://github.com/saimohith-rsm/SERVICE-PROVIDER',
+      });
+    });
+  }
 }
 
 // Centralized Error Handling Middleware

@@ -12,10 +12,10 @@ const connectDB = async () => {
   }
 
   if (!cached.promise) {
-    const mongoUri = process.env.MONGO_URI || (process.env.VERCEL ? null : 'mongodb://127.0.0.1:27018/serveease');
+    const mongoUri = process.env.MONGO_URI || (process.env.NODE_ENV === 'production' || process.env.VERCEL ? null : 'mongodb://127.0.0.1:27018/serveease');
     if (!mongoUri) {
       throw new Error(
-        'MONGO_URI is missing on Vercel! Please add your MongoDB Atlas connection string to Vercel Settings -> Environment Variables.'
+        'MONGO_URI is missing in production! Please configure your MongoDB Atlas connection string in Render / Cloud environment variables.'
       );
     }
 
@@ -31,8 +31,8 @@ const connectDB = async () => {
   } catch (error) {
     cached.promise = null;
     console.error(`[Database Error] ${error.message}`);
-    // Only exit in standalone local dev, not serverless
-    if (!process.env.VERCEL) {
+    // Only exit in local development if explicitly requested, not in cloud/production environments
+    if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
       process.exit(1);
     }
     throw error;
